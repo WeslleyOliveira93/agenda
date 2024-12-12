@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { FloatingLabel, Form, Button, Table } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [agendamentos, setAgendamentos] = useState([]);
@@ -9,12 +11,10 @@ function App() {
     try {
       const resposta = await fetch("http://localhost:3000/agendamentos");
       const dados = await resposta.json();
-     setAgendamentos(dados);
+      setAgendamentos(dados);
     } catch (erro) {
       console.error("Erro ao carregar os agendamentos:", erro);
-      alert(
-        "Não foi possível carregar os agendamentos. Tente novamente mais tarde."
-      );
+      alert("Não foi possível carregar os agendamentos. Tente novamente mais tarde.");
     }
   }
 
@@ -30,7 +30,6 @@ function App() {
 
       if (!resposta.ok) {
         throw new Error(`Erro ao salvar agendamento: ${resposta.statusText}`);
-        console.log(dados);
       }
 
       const resultado = await resposta.json();
@@ -41,14 +40,11 @@ function App() {
     } catch (erro) {
       console.error("Erro ao salvar agendamento:", erro);
       alert("Não foi possível salvar o agendamento. Tente novamente.");
-      console.log(dados);
     }
   }
 
   async function excluirAgendamentos(id) {
-    const confirmacao = window.confirm(
-      "Tem certeza de que deseja excluir o Agendamento?"
-    );
+    const confirmacao = window.confirm("Tem certeza de que deseja excluir o Agendamento?");
 
     if (!confirmacao) return;
 
@@ -58,18 +54,14 @@ function App() {
       });
 
       if (!resposta.ok) {
-        throw new Error(
-          "Erro ao excluir o agendamento. Tente novamente mais tarde."
-        );
+        throw new Error("Erro ao excluir o agendamento. Tente novamente mais tarde.");
       }
 
       alert("Agendamento excluído com sucesso!");
       loadData();
     } catch (erro) {
       console.error("Erro ao excluir agendamento:", erro);
-      alert(
-        "Não foi possível excluir o agendamento. Verifique sua conexão ou tente mais tarde."
-      );
+      alert("Não foi possível excluir o agendamento. Verifique sua conexão ou tente mais tarde.");
     }
   }
 
@@ -96,6 +88,7 @@ function App() {
   useEffect(() => {
     loadData();
   }, []);
+
   const horariosDisponiveis = Array.from({ length: 21 }, (_, index) => {
     const hour = Math.floor(index / 2) + 9;
     const minutes = index % 2 === 0 ? "00" : "30";
@@ -105,67 +98,75 @@ function App() {
   });
 
   return (
-    <div>
-      <h1>Agendamentos</h1>
-
+    <div className="container mt-5">
+      <h1 className="mb-4">Agendamentos</h1>
       <form onSubmit={handleSubmit(salvarAgendamentos)}>
-        <div>
-          <label htmlFor="cliente">Cliente</label>
-          <input type="text" id="cliente" {...register("cliente")} />
-        </div>
-        <div>
-          <label htmlFor="dataAgendamento">Data do Agendamento</label>
-          <input
+        <FloatingLabel controlId="floatingCliente" label="Cliente" className="mb-3">
+          <Form.Control
+            type="text"
+            placeholder="Digite o nome do cliente"
+            {...register("cliente")}
+          />
+        </FloatingLabel>
+
+        <FloatingLabel controlId="floatingDataAgendamento" label="Data do Agendamento" className="mb-3">
+          <Form.Control
             type="date"
-            id="dataAgendamento"
+            placeholder="Selecione a data do agendamento"
             {...register("dataAgendamento")}
           />
-        </div>
-        <div>
-          <label htmlFor="horaAgendamento">Horários Disponíveis</label>
-          <select id="horaAgendamento" {...register("horaAgendamento")}>
+        </FloatingLabel>
+
+        <FloatingLabel controlId="floatingHoraAgendamento" label="Horários Disponíveis" className="mb-3">
+          <Form.Select {...register("horaAgendamento")}> 
             {horariosDisponiveis.map((horario) => (
               <option key={horario} value={horario}>
                 {horario}
               </option>
             ))}
-          </select>
-        </div>
+          </Form.Select>
+        </FloatingLabel>
 
-        <button type="submit">Adicionar Agendamento</button>
+        <Button variant="success" type="submit">
+          Adicionar Agendamento
+        </Button>
       </form>
 
-      {agendamentos ? (
-        <table>
+      {agendamentos.length > 0 ? (
+        <Table striped bordered hover className="mt-4">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>#</th>
               <th>Cliente</th>
               <th>Data</th>
               <th>Hora</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
-            {agendamentos.map((agendamento) => (
+            {agendamentos.map((agendamento, index) => (
               <tr key={agendamento.id}>
-                <td>{agendamento.id}</td>
+                <td>{index + 1}</td>
                 <td>{agendamento.cliente}</td>
                 <td>{agendamento.dataAgendamento}</td>
                 <td>{agendamento.horaAgendamento}</td>
                 <td>
-                  <button onClick={() => excluirAgendamentos(agendamento.id)}>
+                  <Button variant="danger" onClick={() => excluirAgendamentos(agendamento.id)}>
                     Excluir
-                  </button>
-                  <button onClick={() => editarAgendamentos(agendamento.id)}>
-                    Editar
-                  </button>
+                  </Button>{" "}
+                  <Button
+                      variant="primary"
+                      onClick={() => editarAgendamentos(agendamento.id)}
+                    >
+                      Editar
+                    </Button>
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       ) : (
-        <p>Não há agendamentos</p>
+        <p className="mt-4">Não há agendamentos</p>
       )}
     </div>
   );
